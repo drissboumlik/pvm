@@ -81,8 +81,7 @@ function Invoke-PVMUninstall {
     }
 
     $currentVersion = (Get-Current-PHP-Version).version
-    $shouldRemoveCurrent = ($arguments -contains '--skip-confirmation')
-    if ((-not $shouldRemoveCurrent) -and ($currentVersion -and ($version -eq $currentVersion))) {
+    if ($currentVersion -and ($version -eq $currentVersion)) {
         Read-Host "`nYou are trying to uninstall the currently active PHP version ($version). Press Enter to continue or Ctrl+C to cancel."
     }
 
@@ -229,6 +228,13 @@ function Get-Actions {
             description = "Run tests."; 
             action = {
                 $verbosityOptions = @('None', 'Normal', 'Detailed', 'Diagnostic')
+                $arguments = $arguments | Where-Object {
+                    if ($_ -match '^--tag=(.+)$') {
+                        $tag = $Matches[1]
+                        return $false
+                    }
+                    return $true
+                }
                 
                 $files = $null
                 $verbosity = 'Normal'
@@ -242,7 +248,7 @@ function Get-Actions {
                     $files = $arguments
                 }
                 
-                Run-Tests -verbosity $verbosity -tests $files
+                Run-Tests -verbosity $verbosity -tests $files -tag $tag
             }}
     }
 }
